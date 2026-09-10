@@ -3200,3 +3200,318 @@ test("Grok project skills dedupe when .grok/skills symlinks to .agents/skills", 
     await rm(root, { recursive: true, force: true });
   }
 });
+
+async function makeTraeFixture() {
+  const root = await mkdtemp(path.join(os.tmpdir(), "better-harness-agent-customize-trae-"));
+  const traeUserHome = path.join(root, "home");
+  const traeHome = path.join(traeUserHome, ".trae-cn");
+  const traeCliHome = path.join(traeUserHome, ".traecli");
+  const workspace = path.join(root, "workspace");
+
+  // Documented user scope: skills, bundled skills, rules, commands, subagents,
+  // hooks, memory, the CLI skill root, and the .agents standard directory.
+  await writeText(
+    path.join(traeHome, "skills", "better-harness", "SKILL.md"),
+    "---\nname: better-harness\ndescription: Harness workflow.\n---\n# Better Harness\n",
+  );
+  await writeText(
+    path.join(traeHome, "builtin_skills", "TRAE-code-review", "SKILL.md"),
+    "---\nname: TRAE-code-review\ndescription: Native review.\n---\n",
+  );
+  await writeText(
+    path.join(traeHome, "builtin", "global", "skills", "dynamic-ui", "SKILL.md"),
+    "---\nname: dynamic-ui\ndescription: Inline visuals.\n---\n",
+  );
+  await writeJson(path.join(traeHome, "skill-config.json"), {
+    disabledSkills: ["better-harness"],
+    deletedSkills: [],
+    builtinSkillStatus: { "TRAE-code-review": false, "TRAE-dynamic-ui": true },
+    managedSkills: {},
+  });
+  await writeText(path.join(traeHome, "user_rules", "style.md"), "# Style\n\nTwo spaces.\n");
+  await writeText(path.join(traeHome, "commands", "ship.md"), "# Ship\n");
+  await writeText(
+    path.join(traeHome, "agents", "reviewer.md"),
+    "---\nname: reviewer\ndescription: Reviews diffs.\n---\n",
+  );
+  await writeJson(path.join(traeHome, "hooks.json"), {
+    version: 1,
+    hooks: {
+      PreToolUse: [{
+        matcher: "Write",
+        hooks: [{ type: "command", command: "node .trae/hooks/guard.mjs" }],
+      }],
+    },
+  });
+  await writeText(
+    path.join(traeHome, "memory", "user_profile.md"),
+    "## User Preferences\n- Communication language: Chinese\n",
+  );
+  await writeText(
+    path.join(traeCliHome, "skills", "cli-flow", "SKILL.md"),
+    "---\nname: cli-flow\ndescription: Terminal flow.\n---\n",
+  );
+  await writeText(
+    path.join(traeUserHome, ".agents", "skills", "shared-flow", "SKILL.md"),
+    "---\nname: shared-flow\ndescription: Shared SoT skill.\n---\n",
+  );
+  await writeJson(path.join(traeUserHome, ".claude", "settings.json"), {
+    hooks: {
+      PostToolUse: [{ hooks: [{ type: "command", command: "node scripts/audit.mjs" }] }],
+    },
+  });
+
+  // Documented project scope under <workspace>/.trae plus the CLI and .agents
+  // standard directories and the AGENTS.md/CLAUDE.md instruction files.
+  await writeText(
+    path.join(workspace, ".trae", "skills", "project-flow", "SKILL.md"),
+    "---\nname: project-flow\ndescription: Project flow.\n---\n",
+  );
+  await writeText(path.join(workspace, ".trae", "rules", "api.md"), "# API\n");
+  await writeText(path.join(workspace, ".trae", "commands", "lint.md"), "# Lint\n");
+  await writeText(
+    path.join(workspace, ".trae", "agents", "doc-checker.md"),
+    "---\nname: doc-checker\ndescription: Checks docs.\n---\n",
+  );
+  await writeJson(path.join(workspace, ".trae", "hooks.json"), {
+    version: 1,
+    hooks: { Stop: [{ hooks: [{ type: "command", command: "node scripts/stop.mjs" }] }] },
+  });
+  await writeJson(path.join(workspace, ".trae", "mcp.json"), {
+    mcpServers: { docs: { command: "node", args: ["/opt/docs/server.js"] } },
+  });
+  await writeJson(path.join(workspace, ".trae", "skill-config.json"), {
+    disabledSkills: ["project-flow"],
+  });
+  await writeText(
+    path.join(workspace, ".traecli", "skills", "cli-project-flow", "SKILL.md"),
+    "---\nname: cli-project-flow\ndescription: CLI project flow.\n---\n",
+  );
+  await writeText(
+    path.join(workspace, ".agents", "skills", "agents-flow", "SKILL.md"),
+    "---\nname: agents-flow\ndescription: Standard project skill.\n---\n",
+  );
+  await writeText(path.join(workspace, "AGENTS.md"), "# Workspace Guidance\n");
+  await writeText(path.join(workspace, "CLAUDE.md"), "# Claude Guidance\n");
+  await writeText(path.join(workspace, "CLAUDE.local.md"), "# Local Guidance\n");
+  await writeJson(path.join(workspace, ".claude", "settings.json"), {
+    hooks: {
+      SessionStart: [{ hooks: [{ type: "command", command: "node scripts/session-start.mjs" }] }],
+    },
+  });
+  await writeJson(path.join(workspace, ".claude", "settings.local.json"), {
+    hooks: {
+      SessionStart: [{ hooks: [{ type: "command", command: "node scripts/session-start-local.mjs" }] }],
+    },
+  });
+
+  return { root, traeHome, traeCliHome, traeUserHome, workspace };
+}
+
+test("Trae provider collects documented user and project assets", async () => {
+  const fixture = await makeTraeFixture();
+  try {
+    const inventory = await collectAgentCustomizeInventory({
+      provider: "trae",
+      traeHome: fixture.traeHome,
+      traeCliHome: fixture.traeCliHome,
+      workspace: fixture.workspace,
+    });
+
+    assert.equal(inventory.provider, "trae");
+    assert.equal(inventory.traeHome, fixture.traeHome);
+    assert.equal(inventory.traeCliHome, fixture.traeCliHome);
+    assert.equal(inventory.traeUserHome, fixture.traeUserHome);
+    assert.deepEqual(inventory.plugins, []);
+
+    assert.deepEqual(
+      filterManageItems(inventory, { tab: "skills", scopeKind: "user" }).map((item) => item.name).sort(),
+      ["TRAE-code-review", "better-harness", "cli-flow", "dynamic-ui", "shared-flow"].sort(),
+    );
+    assert.deepEqual(
+      filterManageItems(inventory, { tab: "skills", scopeKind: "project" }).map((item) => item.name).sort(),
+      ["agents-flow", "cli-project-flow", "project-flow"],
+    );
+
+    assert.deepEqual(
+      filterManageItems(inventory, { tab: "rules", scopeKind: "user" }).map(
+        (item) => `${item.name}:${item.sourceKind ?? "native"}`,
+      ).sort(),
+      ["style:trae-user-rules", "user_profile.md:trae-user-memory"].sort(),
+    );
+    assert.deepEqual(
+      filterManageItems(inventory, { tab: "rules", scopeKind: "project" }).map((item) => item.name).sort(),
+      ["AGENTS.md", "CLAUDE.local.md", "CLAUDE.md", "api"],
+    );
+
+    assert.deepEqual(
+      filterManageItems(inventory, { tab: "agents", scopeKind: "user" }).map((item) => item.name),
+      ["reviewer"],
+    );
+    assert.deepEqual(
+      filterManageItems(inventory, { tab: "commands", scopeKind: "project" }).map((item) => item.name),
+      ["lint"],
+    );
+    assert.deepEqual(
+      filterManageItems(inventory, { tab: "mcps", scopeKind: "project" }).map((item) => item.name),
+      ["docs"],
+    );
+    // User-level MCP declarations stay an explicit boundary, never a guess.
+    assert.deepEqual(filterManageItems(inventory, { tab: "mcps", scopeKind: "user" }), []);
+
+    const hooks = filterManageItems(inventory, {
+      tab: "hooks",
+      scopeKind: "project",
+    });
+    assert.equal(hooks.length, 3);
+    assert.equal(hooks.filter((item) => item.compatSource === "claude-code").length, 2);
+    assert.equal(
+      filterManageItems(inventory, { tab: "hooks", scopeKind: "user" }).length,
+      2,
+    );
+  } finally {
+    await rm(fixture.root, { recursive: true, force: true });
+  }
+});
+
+test("Trae skill enablement follows the documented skill-config exception lists", async () => {
+  const fixture = await makeTraeFixture();
+  try {
+    const inventory = await collectAgentCustomizeInventory({
+      provider: "trae",
+      traeHome: fixture.traeHome,
+      traeCliHome: fixture.traeCliHome,
+      workspace: fixture.workspace,
+    });
+
+    assert.equal(inventory.diagnostics.skillConfigState, "parsed");
+    assert.deepEqual([...inventory.diagnostics.skillConfigFields].sort(), [
+      "builtinSkillStatus",
+      "deletedSkills",
+      "disabledSkills",
+    ]);
+    assert.equal(inventory.diagnostics.disabledSkillCount, 2);
+    assert.equal(inventory.diagnostics.projectSkillConfigState, "parsed");
+    assert.equal(inventory.diagnostics.projectDisabledSkillCount, 1);
+
+    const userSkills = filterManageItems(inventory, { tab: "skills", scopeKind: "user" });
+    assert.deepEqual(
+      userSkills.filter((item) => item.enabled === false).map((item) => item.name).sort(),
+      // `dynamic-ui` is not listed, so the TRAE-prefixed `TRAE-dynamic-ui: true`
+      // entry must not disable it; the prefixed `false` entry must.
+      ["TRAE-code-review", "better-harness"],
+    );
+    for (const item of userSkills) {
+      assert.equal(typeof item.enabled, "boolean", `${item.name} enablement must be observed`);
+    }
+
+    const projectSkills = filterManageItems(inventory, { tab: "skills", scopeKind: "project" });
+    assert.deepEqual(
+      projectSkills.filter((item) => item.enabled === false).map((item) => item.name),
+      ["project-flow"],
+    );
+    assert.equal(
+      projectSkills.find((item) => item.name === "project-flow")?.disabledBy,
+      "skill-config.json",
+    );
+  } finally {
+    await rm(fixture.root, { recursive: true, force: true });
+  }
+});
+
+test("Trae enablement stays unobserved when skill-config.json has an unrecognized shape", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "better-harness-trae-skill-config-"));
+  const traeHome = path.join(root, ".trae-cn");
+  const workspace = path.join(root, "workspace");
+  try {
+    await writeText(
+      path.join(traeHome, "skills", "sample-flow", "SKILL.md"),
+      "---\nname: sample-flow\ndescription: Sample.\n---\n",
+    );
+    await writeJson(path.join(traeHome, "skill-config.json"), { version: 1, skills: { sample: false } });
+
+    const inventory = await collectAgentCustomizeInventory({
+      provider: "trae",
+      traeHome,
+      traeCliHome: path.join(root, ".traecli"),
+      workspace,
+    });
+
+    assert.equal(inventory.diagnostics.skillConfigState, "unrecognized");
+    assert.deepEqual(inventory.diagnostics.skillConfigFields, []);
+    const skills = filterManageItems(inventory, { tab: "skills", scopeKind: "user" });
+    assert.deepEqual(skills.map((item) => item.name), ["sample-flow"]);
+    assert.equal(skills[0].enabled, undefined);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("agent-customize CLI honours --trae-home instead of the real user home", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "better-harness-trae-isolated-home-"));
+  const traeUserHome = path.join(root, "home");
+  const traeHome = path.join(traeUserHome, ".trae-cn");
+  const traeCliHome = path.join(traeUserHome, ".traecli");
+  const workspace = path.join(root, "workspace");
+  try {
+    await mkdir(traeHome, { recursive: true });
+    await mkdir(workspace, { recursive: true });
+    const result = runAgentCustomizeCli([
+      "inventory",
+      "--provider",
+      "trae",
+      "--workspace",
+      workspace,
+      "--trae-home",
+      traeHome,
+      "--trae-cli-home",
+      traeCliHome,
+    ]);
+
+    assert.equal(result.status, 0, result.stderr);
+    const inventory = JSON.parse(result.stdout);
+    assert.equal(inventory.traeHome, traeHome);
+    assert.equal(inventory.traeCliHome, traeCliHome);
+    assert.equal(inventory.traeUserHome, traeUserHome);
+    assert.notEqual(inventory.traeHome, path.join(os.homedir(), ".trae-cn"));
+    assert.equal(inventory.diagnostics.skillConfigState, "missing");
+    assert.deepEqual(filterManageItems(inventory, { tab: "skills", scopeKind: "user" }), []);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("Trae project skills dedupe when .trae/skills symlinks to .agents/skills", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "better-harness-trae-skill-symlink-"));
+  const traeHome = path.join(root, "home", ".trae-cn");
+  const workspace = path.join(root, "workspace");
+  try {
+    await mkdir(traeHome, { recursive: true });
+    await writeText(
+      path.join(workspace, ".agents", "skills", "shared-flow", "SKILL.md"),
+      "---\nname: shared-flow\ndescription: Shared SoT skill.\n---\n",
+    );
+    await mkdir(path.join(workspace, ".trae"), { recursive: true });
+    // A Windows junction needs no elevation and behaves like a directory
+    // symlink for this dedupe check; the type is ignored on other platforms.
+    await symlink(
+      path.join(workspace, ".agents", "skills"),
+      path.join(workspace, ".trae", "skills"),
+      "junction",
+    );
+
+    const inventory = await collectAgentCustomizeInventory({
+      provider: "trae",
+      traeHome,
+      traeCliHome: path.join(root, "home", ".traecli"),
+      workspace,
+    });
+    const projectSkills = filterManageItems(inventory, { tab: "skills", scopeKind: "project" });
+    assert.deepEqual(projectSkills.map((item) => item.name), ["shared-flow"]);
+    assert.equal(projectSkills.length, 1);
+    const evidencePath = projectSkills[0]?.evidence?.path ?? projectSkills[0]?.filePath ?? "";
+    assert.match(evidencePath.replace(/\\/gu, "/"), /\.agents\/skills\/shared-flow\/SKILL\.md$/u);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

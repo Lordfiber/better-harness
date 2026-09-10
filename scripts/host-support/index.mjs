@@ -128,6 +128,15 @@ export const HOST_DESCRIPTORS = Object.freeze([
     ],
     sessionScopeTokens: [".dsh", "dsh", "deepseek-harness"],
   }),
+  descriptor({
+    id: "trae",
+    displayName: "Trae",
+    // Configured assets only: TRAE has no documented workspace-qualified
+    // session transcript, no Better Harness plugin manifest, and no validated
+    // native lifecycle contract, so every other slice stays unclaimed.
+    aliases: ["TraeCode", "Trae Code", "Trae IDE"],
+    capabilities: [HOST_CAPABILITIES.AGENT_CUSTOMIZE],
+  }),
 ]);
 
 const HOST_BY_ID = new Map(HOST_DESCRIPTORS.map((host) => [host.id, host]));

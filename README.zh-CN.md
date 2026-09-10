@@ -35,7 +35,7 @@
 不同宿主的入口并不完全相同，请直接使用对应章节给出的命令。
 
 本 README 仅内联展示最常用宿主的安装步骤。其余受支持的宿主（Qwen Code、Pi、
-Kimi Code、WorkBuddy 与 Grok）的步骤与边界保留在
+Kimi Code、WorkBuddy、Grok 与 Trae）的步骤与边界保留在
 [安装指南](docs/docs/installation.mdx)和[公开宿主适配矩阵](docs/docs/hosts/adapter-matrix.md)中；
 参见[更多适配器](#更多适配器)。README 中的排布只是展示选择，并不代表支持等级。
 
@@ -364,7 +364,7 @@ Copilot 不记录逐次响应的 token 用量，VS Code Copilot Chat 也没有�
 ### 更多适配器
 
 除上述宿主外，Better Harness 还支持 Qwen Code、Pi、Kimi Code、WorkBuddy 与
-Grok。它们确切的安装、调用与证据边界都放在文档里，以保持本 README 精简：
+Grok、Trae。它们确切的安装、调用与证据边界都放在文档里，以保持本 README 精简：
 
 - **Qwen Code** —— [安装指南](docs/docs/installation.mdx#qwen-code)
   （`qwen extensions install QoderAI/better-harness`）。
@@ -376,9 +376,13 @@ Grok。它们确切的安装、调用与证据边界都放在文档里，以保�
   （`.kimi-plugin/plugin.json` 插件安装）。
 - **WorkBuddy** —— [宿主适配器矩阵](docs/docs/hosts/adapter-matrix.md#workbuddy)。
 - **Grok** —— [宿主适配器矩阵](docs/docs/hosts/adapter-matrix.md#grok)。
+- **Trae** —— [宿主适配器矩阵](docs/docs/hosts/adapter-matrix.md#trae)
+  （目前仅提供已配置资产清点）。将 `skills/better-harness` 复制或链接到项目
+  `.trae/skills` 或 `~/.trae-cn/skills` 目录即可安装。
 
-它们都产出自包含的 `report.html` 及配套的 `report.md` 与 `findings.json`；
-缺失或不完整的会话证据会被明确标注。
+除 Trae 以外的上述宿主都会产出自包含的 `report.html` 及配套的 `report.md` 与
+`findings.json`；缺失或不完整的会话证据会被明确标注。Trae 目前只提供已配置
+资产证据。
 
 <a id="develop-and-package-from-source"></a>
 

@@ -39,7 +39,7 @@ invocation, and report-output steps. Better Harness does not use one universal
 entrypoint across every host.
 
 This README shows inline setup for the most common hosts. Additional supported
-hosts (Qwen Code, Pi, Kimi Code, WorkBuddy, and Grok) keep their steps and
+hosts (Qwen Code, Pi, Kimi Code, WorkBuddy, Grok, and Trae) keep their steps and
 boundaries in the [installation guide](docs/docs/installation.mdx) and the
 [public Host Adapter Matrix](docs/docs/hosts/adapter-matrix.md); see
 [More adapters](#more-adapters). README placement is a display choice, not a
@@ -389,7 +389,7 @@ surface.
 ### More adapters
 
 Beyond the hosts above, Better Harness also supports Qwen Code, Pi, Kimi Code,
-WorkBuddy, and Grok. Their exact install, invocation, and
+WorkBuddy, Grok, and Trae. Their exact install, invocation, and
 evidence boundaries live in the docs so this README stays focused:
 
 - **Qwen Code** — [installation guide](docs/docs/installation.mdx#qwen-code)
@@ -402,9 +402,14 @@ evidence boundaries live in the docs so this README stays focused:
   (`.kimi-plugin/plugin.json` plugin install).
 - **WorkBuddy** — [Host Adapter Matrix](docs/docs/hosts/adapter-matrix.md#workbuddy).
 - **Grok** — [Host Adapter Matrix](docs/docs/hosts/adapter-matrix.md#grok).
+- **Trae** — [Host Adapter Matrix](docs/docs/hosts/adapter-matrix.md#trae)
+  (configured-asset inventory only). Better Harness installs by copying or
+  linking `skills/better-harness` into a project `.trae/skills` or
+  `~/.trae-cn/skills` directory.
 
-Each produces a self-contained `report.html` with paired `report.md` and
-`findings.json`; missing or partial session evidence stays explicit.
+Each host above except Trae produces a self-contained `report.html` with paired
+`report.md` and `findings.json`; missing or partial session evidence stays
+explicit. Trae currently contributes configured-asset evidence only.
 
 ## Develop and package from source
 

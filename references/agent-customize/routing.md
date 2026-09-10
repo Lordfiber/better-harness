@@ -38,7 +38,8 @@ Route by ownership before choosing a vendor-specific feature:
   `platforms/qoder.md`; for Copilot-specific operating practice, then load
   `platforms/copilot.md`; for Kimi-specific configured-asset scope, then load
   `platforms/kimi.md`; for DSH filesystem Skills and cwd-sensitive
-  Instructions, then load `platforms/dsh.md`. For installed, user-home,
+  Instructions, then load `platforms/dsh.md`; for TraeCode project/user
+  configured-asset scope, then load `platforms/trae.md`. For installed, user-home,
   settings screenshot, plugin
   cache, or memory scope, run the Global/User Asset Pass.
 - Prior decision, user correction, remembered preference, stale recall,
@@ -467,3 +468,36 @@ Global/User Asset Pass from `global-assets.md` when the user asks about
 WorkBuddy global assets such as `~/.workbuddy/skills` or installed
 marketplace plugins. Keep configured inventory evidence separate from
 observed session behavior.
+
+## Trae Asset Route
+
+For TraeCode-specific actions, use `platforms/trae.md` as the operating
+practice reference for skill, rule, command, subagent, hook, MCP, and memory
+locations. Presence is not execution proof.
+
+Inspect configured surfaces before projecting readiness evidence:
+
+- `.trae/rules` and `~/.trae-cn/user_rules`, plus the project `AGENTS.md`,
+  `CLAUDE.md`, and `CLAUDE.local.md` instruction files, for durable repo
+  context.
+- `.trae/skills`, `~/.trae-cn/skills`, the bundled
+  `~/.trae-cn/builtin_skills` and `~/.trae-cn/builtin/global/skills` roots, and
+  the shared `.agents/skills` directories for repeatable workflows.
+  `.trae/skills` wins a name collision against `.agents/skills`.
+- `.trae/commands` and `~/.trae-cn/commands` for short manual entrypoints.
+- `.trae/agents` and `~/.trae-cn/agents` for specialist subagents; a project
+  subagent overrides a same-named user subagent.
+- `.trae/hooks.json` and `~/.trae-cn/hooks.json`, plus the Claude Code hook
+  files TraeCode merges from `~/.claude/settings.json` and
+  `<workspace>/.claude/settings*.json`, for lifecycle enforcement.
+- `.trae/mcp.json` for project-scope MCP servers after the project-level MCP
+  setting is enabled. User MCP declarations are not read.
+- `~/.trae-cn/memory/user_profile.md` for standing user memory, and
+  `skill-config.json` for disabled or deleted skill ids.
+- Session, diff, test, build, and review evidence for observed execution.
+  TraeCode has no claimed on-disk session transcript in this repository.
+
+Use the Global/User Asset Pass from `global-assets.md` when the user asks about
+TraeCode global assets such as `~/.trae-cn/skills` or bundled skills; pass
+`--trae-home <path>` for an isolated root. Keep configured inventory evidence
+separate from observed session behavior.

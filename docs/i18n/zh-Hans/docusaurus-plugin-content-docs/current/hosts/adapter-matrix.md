@@ -14,7 +14,10 @@ Better Harness 运行在你现有的编码智能体内。宿主差异只进入�
 
 Better Harness 当前声明了十个能力层宿主适配器，其中六个已有验证过的公开
 快速开始路径。Pi、Kimi Code、WorkBuddy 与 Grok 以适配器支持展示，因为它们的安装方式和端到端
-证据边界与这六个宿主不同。完整能力层事实源仍是
+证据边界与这六个宿主不同。Trae 以仅提供已配置资产的 partial adapter 展示：
+Better Harness 可以报告 TraeCode 工作区与用户根目录被配置加载的 Skill、规则、
+命令、子智能体、Hook、MCP Server 与记忆，但不声明会话证据、报告渲染或生命周期。
+完整能力层事实源仍是
 [规范适配器矩阵](https://github.com/QoderAI/better-harness/blob/main/docs/adapters/README.md)。
 
 ## 受支持的宿主适配器
@@ -31,6 +34,7 @@ Better Harness 当前声明了十个能力层宿主适配器，其中六个已�
 | Kimi Code | 适配器支持 | 具备分析能力的源码本地宿主 | `.kimi-plugin/plugin.json` | 匹配工作区的 Kimi wire 转录 | 自包含 HTML + Markdown |
 | WorkBuddy | 适配器支持 | 具备分析能力的源码本地宿主 | 无；Skill 使用 WorkBuddy 自有路径 | 匹配工作区的 WorkBuddy JSONL 转录 | 自包含 HTML + Markdown |
 | Grok | 适配器支持 | 具备分析能力的源码本地宿主 | 无；Skill 使用 Grok 自有路径 | 匹配工作区的 Grok 会话目录（`updates.jsonl`） | 自包含 HTML + Markdown |
+| Trae | 适配器支持 | 仅提供已配置资产的 partial adapter | 无；Skill 使用 TraeCode 自有路径 | 不可用；没有文档化的、可绑定工作区的转录 | 不声明 |
 
 `@qoder-ai/better-harness` npm 包含全部七个插件元数据根目录。生成的 Qoder
 运行时 bundle 只包含 Qoder shell。Pi 复用现有 `package.json` 中的安装元数据，
@@ -52,6 +56,8 @@ Cursor 在本机 help 合同过期期间保持安装不可用；Pi 持久化 sur
 证据的操作保持不可用，临时 session surface 的更新/移除不适用；WorkBuddy 返回
 `PLUGIN_LIFECYCLE_UNSUPPORTED`。Kimi Code 与 Grok 尚无经验证的原生生命周期
 合同，因此生命周期目标会以 `UNKNOWN_HOST` 拒绝它们，其适配器证据仍然可用。
+Trae 同样没有经验证的原生生命周期合同，生命周期目标会以 `UNKNOWN_HOST`
+拒绝它，已配置资产证据仍然可用。
 在 ADR-0002 仍为 proposed 期间，shadow host profile 不替代规范适配器矩阵。
 
 ## 输出模式
@@ -109,6 +115,25 @@ Grok 的已配置资产、工作区匹配的会话证据与可移植 HTML 路由
 本仓库不提供 Grok 安装 Shell 或 npm 打包的宿主产物；安装方式是将 Skill 软链到
 `~/.grok/skills/better-harness`（或项目 `.grok/skills`）。在观察到完整交互式
 报告闭环冒烟验证前，Grok 仍不进入已验证快速开始集合。
+
+### Trae {#trae}
+
+Trae（TraeCode）的已配置资产清点已实现，覆盖文档化的 TRAE CN 本地根目录
+`~/.trae-cn`（或 `--trae-home`）：用户与内置 Skill、`user_rules`、用户记忆、
+命令、子智能体、`hooks.json`、`skill-config.json` 例外清单、`~/.traecli` CLI
+Skill 根目录，以及项目 `.trae` 下的对应目录与 `.trae/mcp.json`。TraeCode 还会
+读取共享的 `.agents/skills` 目录、`AGENTS.md`/`CLAUDE.md`/`CLAUDE.local.md`
+指令文件，并合并 Claude Code 的 Hook 配置；这些条目带有
+`compatSource: claude-code` 标记。
+
+本仓库不提供 Trae 安装 Shell、插件 manifest 或 npm 打包的宿主产物；安装方式是
+将 `skills/better-harness` 复制或链接到项目 `.trae/skills` 或 `~/.trae-cn/skills`
+目录。Trae 属于 **Partial adapter**：不声明会话证据、Checkup、Asset Practices、
+Evidence Bundle、报告渲染与插件生命周期，生命周期目标会以 `UNKNOWN_HOST`
+拒绝 `trae`。`~/.trae-cn/mcps` 下的用户级 MCP 状态、不透明的项目记忆 slug
+目录、TraeCode CLI 2.0 的 `$TRAE_HOME` 运行时 Skill 以及企业版托管技能都保持
+显式边界。会话证据不可用，因为 TRAE 提供的是对话 `SessionID` 与打包日志目录，
+而不是可绑定工作区的转录。
 
 ## 能力覆盖
 

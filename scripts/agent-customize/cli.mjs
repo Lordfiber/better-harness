@@ -26,6 +26,7 @@ function usage() {
     `Provider home overrides: ${CUSTOMIZE_HOME_OPTIONS.slice(0, 4).join(", ")},`,
     `${CUSTOMIZE_HOME_OPTIONS.slice(4).join(", ")}, --claude-state, --codex-app-path, --qoder-shared-client-cache-root.`,
     "DSH configured-assets options: --cwd <path>, --include-user-home[=<boolean>].",
+    "Trae configured-assets option: --trae-cli-home <dir> (default: ~/.traecli).",
     "",
   ].join("\n");
 }
@@ -50,6 +51,8 @@ function summarize(inventory, options) {
     workbuddyHome: inventory.workbuddyHome,
     grokHome: inventory.grokHome,
     dshHome: inventory.dshHome,
+    traeHome: inventory.traeHome,
+    traeCliHome: inventory.traeCliHome,
     claudeStatePath: inventory.claudeStatePath,
     kimiHome: inventory.kimiHome,
     codexAppPath: inventory.codexAppPath,
@@ -94,6 +97,7 @@ async function main() {
     claudeStatePath: options["claude-state"] ?? options["claude-state-path"],
     codexAppPath: options["codex-app-path"],
     qoderSharedClientCacheRoot: options["qoder-shared-client-cache-root"] ?? options["shared-client-cache-root"],
+    traeCliHome: options["trae-cli-home"],
     workspace: options.workspace,
     ...(options.provider === "dsh"
       ? {

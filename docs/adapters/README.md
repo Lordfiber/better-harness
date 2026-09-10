@@ -1,7 +1,7 @@
 # Host Adapter Matrix
 
 This is the single entry point for Claude Code, Augment/Auggie, Codex, Qoder,
-Cursor, Qwen, GitHub Copilot, Pi, Kimi Code, WorkBuddy, and Grok host
+Cursor, Qwen, GitHub Copilot, Pi, Kimi Code, WorkBuddy, Grok, and Trae host
 boundaries, plus the
 DeepSeek Harness (DSH) verified install/discovery, developer-preview
 configured-assets, session, Asset Practices, neutral Harness analysis, and
@@ -10,7 +10,7 @@ create `docs/adapters/claude-code.md`, `docs/adapters/codex.md`,
 `docs/adapters/qoder.md`, `docs/adapters/cursor.md`, `docs/adapters/qwen.md`,
 `docs/adapters/copilot.md`, `docs/adapters/pi.md`,
 `docs/adapters/kimi-code.md`, `docs/adapters/workbuddy.md`, or
-`docs/adapters/grok.md` by default.
+`docs/adapters/grok.md`, or `docs/adapters/trae.md` by default.
 
 Adding another host? Follow
 [Contributing a New Coding Agent Host](contributing-new-coding-agent.md) before
@@ -48,6 +48,7 @@ project `.kimi-code/skills/`), then runs `/skill:better-harness`.
 | Kimi Code | Analysis-capable source-local host | `.kimi-plugin/plugin.json` | `scripts/agent-customize/providers/kimi.mjs` | `scripts/session-analysis/platforms/kimi.mjs` | self-contained HTML + Markdown | `AGENTS.md` + `~/.kimi-code/skills` + project `.kimi-code/skills`/`.kimi/skills` + `~/.kimi-code/mcp.json` | `harness evidence-bundle --platform kimi` -> validated `html` render |
 | WorkBuddy | Analysis-capable source-local host | none (skills install into `~/.workbuddy/skills`) | `scripts/agent-customize/providers/workbuddy.mjs` | `scripts/session-analysis/platforms/workbuddy.mjs` | self-contained HTML + Markdown | `~/.workbuddy` `AGENTS.md` + identity files + `.agents` + `AGENTS.md` | `session-analysis --platform workbuddy sources` -> validated `html` render |
 | Grok | Analysis-capable source-local host | none (skills install into `~/.grok/skills`) | `scripts/agent-customize/providers/grok.mjs` | `scripts/session-analysis/platforms/grok.mjs` | self-contained HTML + Markdown | `~/.grok` + `.grok` + `.agents` + `AGENTS.md` | `session-analysis --platform grok sources` -> skill symlink -> validated `html` render |
+| Trae | Configured-assets-only partial adapter | none (skills install into `~/.trae-cn/skills` or project `.trae/skills`) | `scripts/agent-customize/providers/trae.mjs` | unavailable; no documented workspace-qualified transcript | none; no report render is claimed | `~/.trae-cn/user_rules` + `.trae/rules` + `.agents` + `AGENTS.md`/`CLAUDE.md` | `agent-customize inventory --provider trae --trae-home <dir> --json` against a synthetic home |
 | DeepSeek Harness (DSH) | Verified install/discovery for headless/base and Web `standard`/`code`/`cordis`; shared read-only analysis over developer-preview configured and Session evidence | local DSH Cordis policy at `scripts/dsh-skill-discovery/index.mjs`; no lifecycle shell | `scripts/agent-customize/providers/dsh.mjs`; filesystem Skills and cwd-sensitive Instructions, configured-not-observed | `scripts/session-analysis/platforms/dsh.mjs`; `dsh-v1` for the audited format-0 session-evidence slice from DSH `dsh-v0.1.0-rc.7` and `dsh-v0.1.0-rc.8`, raw `.jsonl` and feature-detected `.jsonl.zstd` | self-contained HTML + Markdown | canonical Skill from the complete root; model Skill calls rejected | `npm run test:dsh-native`; `npm run test:dsh-configured-assets-native`; validated portable `html` render and native output-root inertness |
 
 ## Read-only Plugin Lifecycle
@@ -85,10 +86,11 @@ Plans never execute and always preserve native surface differences:
 | Pi CLI / CLI session | Persistent user/project install guidance and inventory; separate `pi -e` session-only activation whose update/remove operations are not applicable |
 | WorkBuddy | `PLUGIN_LIFECYCLE_UNSUPPORTED`; adapter evidence remains available |
 
-Kimi Code, Grok, and DSH are absent from this table on purpose: none has a
+Kimi Code, Grok, Trae, and DSH are absent from this table on purpose: none has a
 validated native lifecycle contract yet, so lifecycle targets reject them with
 `UNKNOWN_HOST` instead of borrowing another host's install route. Kimi Code and
-Grok retain their configured-asset and session evidence. DSH retains its
+Grok retain their configured-asset and session evidence. Trae retains only its
+configured-asset evidence. DSH retains its
 bounded verified discovery, configured-assets, and partial session-evidence
 slices, but has no lifecycle profile or native lifecycle claim.
 
@@ -221,6 +223,30 @@ edit host settings, or register an `apply` path.
   `signals.json`). The adapter honors `GROK_HOME`. Grok has no install shell in
   this repository; skills install manually into `~/.grok/skills` (symlink is
   enough for `/better-harness`).
+- Trae (TraeCode) configured assets are inventoried through
+  `scripts/agent-customize/providers/trae.mjs`, covering the TRAE CN local root
+  `~/.trae-cn` (or `--trae-home`): `skills`, `builtin_skills`,
+  `builtin/global/skills`, `user_rules`, `memory/user_profile.md`, `commands`,
+  `agents`, `hooks.json`, and the `skill-config.json` exception lists. Project
+  scope covers `.trae/{skills,rules,commands,agents}`, `.trae/hooks.json`,
+  `.trae/mcp.json`, `.trae/skill-config.json`, the `.traecli/skills` CLI root,
+  the shared `.agents/skills` directory, and the `.trae/skills`-wins precedence
+  over it. TraeCode also reads the `AGENTS.md`, `CLAUDE.md`, and
+  `CLAUDE.local.md` instruction files and merges Claude Code hook configuration
+  from `.claude/settings.json` (plus `.claude/settings.local.json` per project);
+  those hook items carry `compatSource: claude-code`. The separate
+  `--trae-cli-home` option (default `~/.traecli`) covers the documented
+  TraeCode CLI skill root. Trae has no install shell in this repository, so
+  install Better Harness by copying or linking `skills/better-harness` into a
+  project `.trae/skills` or `~/.trae-cn/skills` directory. User-level MCP
+  declarations under `~/.trae-cn/mcps`, the opaque project-memory slug root,
+  TraeCode CLI 2.0 `$TRAE_HOME` runtime skills, enterprise managed skills, and
+  session transcripts remain explicit boundaries: Trae exposes a conversation
+  `SessionID` and a packaged log folder, not a workspace-qualified transcript.
+  This slice adds only configured-asset evidence; it claims no session,
+  Checkup, Asset Practices, evidence-bundle, report, lifecycle, or Quickstart
+  support. See
+  [TraeCode Best Practices](../../references/agent-customize/platforms/trae.md).
 - DeepSeek Harness has independent bounded capabilities. Verified
   install/discovery uses DSH `0.1.1-rc.2` at audited source
   `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`. The sole supported discovery

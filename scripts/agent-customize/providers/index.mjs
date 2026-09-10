@@ -8,6 +8,7 @@ import { collectPiCustomizeInventory } from "./pi.mjs";
 import { collectKimiCustomizeInventory } from "./kimi.mjs";
 import { collectQoderCustomizeInventory } from "./qoder.mjs";
 import { collectQwenCustomizeInventory } from "./qwen.mjs";
+import { collectTraeCustomizeInventory } from "./trae.mjs";
 import { collectWorkbuddyCustomizeInventory } from "./workbuddy.mjs";
 import { HOST_CAPABILITIES, hostIdsFor } from "../../host-support/index.mjs";
 
@@ -23,6 +24,7 @@ export const PROVIDER_COLLECTORS = new Map([
   ["workbuddy", collectWorkbuddyCustomizeInventory],
   ["grok", collectGrokCustomizeInventory],
   ["dsh", collectDshCustomizeInventory],
+  ["trae", collectTraeCustomizeInventory],
 ]);
 
 export const SUPPORTED_CUSTOMIZE_PROVIDERS = hostIdsFor(HOST_CAPABILITIES.AGENT_CUSTOMIZE);

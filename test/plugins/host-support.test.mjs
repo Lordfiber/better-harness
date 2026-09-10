@@ -67,6 +67,21 @@ test("capability projections are immutable, ordered, and independently addressed
   assert.throws(() => hostIdsFor("unknown"), /Unknown host capability/u);
 });
 
+test("Trae declares configured assets only", () => {
+  const trae = getHostDescriptor("trae");
+  assert.ok(trae);
+  assert.equal(trae.displayName, "Trae");
+  assert.deepEqual(trae.capabilities, [HOST_CAPABILITIES.AGENT_CUSTOMIZE]);
+  assert.equal(trae.sessionScopeTokens.length, 0);
+  for (const capability of Object.values(HOST_CAPABILITIES)) {
+    assert.equal(
+      hostIdsFor(capability).includes("trae"),
+      capability === HOST_CAPABILITIES.AGENT_CUSTOMIZE,
+      capability,
+    );
+  }
+});
+
 test("host home normalization accepts generic, camel-case, and dashed inputs", () => {
   for (const host of HOST_DESCRIPTORS) {
     const dashedHome = `/isolated/dashed/${host.id}`;

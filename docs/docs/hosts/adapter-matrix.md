@@ -14,11 +14,16 @@ host-neutral.
 ## Support levels
 
 Better Harness currently declares ten more complete capability-level host
-adapters, a partial Augment/Auggie session-only adapter, plus bounded DSH
-discovery, configured-assets, and session slices.
+adapters, a partial Augment/Auggie session-only adapter, a TraeCode
+configured-assets-only partial adapter, plus bounded DSH discovery,
+configured-assets, and session slices.
 Six have verified public Quickstart paths. Pi, Kimi Code, WorkBuddy, and Grok
 are visible as adapter support because their installation and end-to-end
-evidence boundaries differ from that six-host set. DSH has Verified
+evidence boundaries differ from that six-host set. Trae is visible as a
+configured-assets-only partial adapter: Better Harness can report the skills,
+rules, commands, subagents, hooks, MCP servers, and memory a TraeCode workspace
+and user root are configured to load, but it claims no session evidence, report
+render, or lifecycle. DSH has Verified
 install/discovery for a qualified runtime/preset boundary plus developer-preview
 configured-assets and session-evidence contracts. It supports shared read-only
 Asset Practices, neutral Harness analysis, Evidence Bundles, and qualified
@@ -41,6 +46,7 @@ remains the complete capability-level source of truth.
 | Kimi Code | Adapter support | Analysis-capable source-local host | `.kimi-plugin/plugin.json` | Workspace-matching Kimi wire transcripts | Self-contained HTML + Markdown |
 | WorkBuddy | Adapter support | Analysis-capable source-local host | None; skills use WorkBuddy-owned paths | Workspace-matching WorkBuddy JSONL transcripts | Self-contained HTML + Markdown |
 | Grok | Adapter support | Analysis-capable source-local host | None; skills use Grok-owned paths | Workspace-matching Grok session dirs (`updates.jsonl`) | Self-contained HTML + Markdown |
+| Trae | Adapter support | Configured-assets-only partial adapter | None; skills use TraeCode-owned paths | Unavailable; no documented workspace-qualified transcript | Not claimed |
 | DeepSeek Harness (DSH) | Verified install/discovery | Qualified headless/base and Web `standard`/`code`/`cordis`; shared read-only analysis over partial configured-assets and session evidence | Local DSH Cordis policy; no lifecycle shell | DSH JSONL backend session format `0`: raw `.jsonl` and feature-detected `.jsonl.zstd` | Self-contained HTML + Markdown |
 
 The `@qoder-ai/better-harness` npm package includes all seven plugin metadata
@@ -65,8 +71,8 @@ steps without executing them. Qoder Desktop remains bundled, Codex Desktop uses
 manual UI steps, Cursor installation stays unavailable while its local help
 contract is stale, persistent Pi operations without native evidence stay
 unavailable, transient Pi update/remove are not applicable, and WorkBuddy
-returns `PLUGIN_LIFECYCLE_UNSUPPORTED`. Kimi Code and Grok have no validated
-native lifecycle contract yet, so lifecycle targets reject them with
+returns `PLUGIN_LIFECYCLE_UNSUPPORTED`. Kimi Code, Grok, and Trae have no
+validated native lifecycle contract yet, so lifecycle targets reject them with
 `UNKNOWN_HOST` while their adapter evidence stays available. DSH likewise has
 no lifecycle profile: lifecycle targets reject it with `UNKNOWN_HOST`; its
 manually configured verified discovery and partial session evidence remain
@@ -163,6 +169,31 @@ npm-packaged host artifact; installation is a manual skill symlink into
 `~/.grok/skills/better-harness` (or project `.grok/skills`). Grok remains
 outside the verified Quickstart set until a complete interactive report-loop
 smoke is observed.
+
+### Trae {#trae}
+
+Trae (TraeCode) configured assets are implemented for the documented TRAE CN
+local root `~/.trae-cn` (or `--trae-home`): user and bundled skills,
+`user_rules`, user memory, commands, subagents, `hooks.json`, the
+`skill-config.json` exception lists, the `~/.traecli` CLI skill root, and the
+project `.trae` equivalents plus `.trae/mcp.json`. TraeCode also honors the
+shared `.agents/skills` directories and the `AGENTS.md`, `CLAUDE.md`, and
+`CLAUDE.local.md` instruction files, and it merges Claude Code hook
+configuration, which the provider marks with `compatSource: claude-code`.
+
+This repository does not ship a Trae install shell, plugin manifest, or
+npm-packaged host artifact; install Better Harness by copying or linking
+`skills/better-harness` into a project `.trae/skills` or `~/.trae-cn/skills`
+directory. Trae is a **Partial adapter**: session evidence, Checkup, Asset
+Practices, Evidence Bundle, report rendering, and plugin lifecycle are not
+claimed, and lifecycle targets reject `trae` with `UNKNOWN_HOST`. User-level MCP
+state under `~/.trae-cn/mcps`, the opaque project-memory slug root, TraeCode CLI
+2.0 `$TRAE_HOME` runtime skills, and enterprise managed skills remain explicit
+boundaries. Session evidence stays unavailable because TRAE exposes a
+conversation `SessionID` and a packaged log folder rather than a
+workspace-qualified transcript. See
+[TraeCode Best Practices](https://github.com/QoderAI/better-harness/blob/main/references/agent-customize/platforms/trae.md)
+and the dated `2026-09-11-trae-host-adapter` spec.
 
 ### DeepSeek Harness (DSH) {#deepseek-harness-dsh}
 
